@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>末日废土 - 丧尸围城</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- 开始菜单 -->
+    <div id="start-menu">
+        <h1>末日废土</h1>
+        <h2>丧尸围城</h2>
+        <p>城市已被丧尸占领，搜集武器，消灭所有丧尸！</p>
+        <button id="start-btn">开始游戏</button>
+        <div class="controls-info">
+            <h3>操作说明</h3>
+            <p>WASD - 移动 | 鼠标 - 视角</p>
+            <p>左键 - 射击 | R - 换弹</p>
+            <p>E - 拾取 | Q - 使用医疗包 | F - 使用食物</p>
+            <p>1/2/3 - 切换武器 | Shift - 奔跑 | 空格 - 跳跃</p>
+        </div>
+    </div>
+
+    <!-- 游戏HUD -->
+    <div id="hud" style="display:none;">
+        <!-- 左下角：生命和饥饿 -->
+        <div id="hud-left">
+            <div class="bar-container">
+                <span class="bar-label">HP</span>
+                <div class="bar"><div id="hp-bar" class="bar-fill hp"></div></div>
+                <span id="hp-text" class="bar-value">100</span>
+            </div>
+            <div class="bar-container">
+                <span class="bar-label">饥饿</span>
+                <div class="bar"><div id="hunger-bar" class="bar-fill hunger"></div></div>
+                <span id="hunger-text" class="bar-value">100</span>
+            </div>
+        </div>
+
+        <!-- 右下角：武器和弹药 -->
+        <div id="hud-right">
+            <div id="weapon-info">
+                <span id="weapon-name">无武器</span>
+                <span id="ammo-count">- / -</span>
+            </div>
+            <div id="weapon-slots">
+                <span class="slot" id="slot-1">1: 空</span>
+                <span class="slot" id="slot-2">2: 空</span>
+                <span class="slot" id="slot-3">3: 空</span>
+            </div>
+        </div>
+
+        <!-- 顶部中央：丧尸计数 -->
+        <div id="hud-top">
+            <span id="zombie-count">剩余丧尸: 0</span>
+        </div>
+
+        <!-- 中央准星 -->
+        <div id="crosshair">+</div>
+
+        <!-- 底部提示 -->
+        <div id="pickup-hint" style="display:none;">按 E 拾取</div>
+
+        <!-- 击杀反馈 -->
+        <div id="kill-feedback" style="display:none;"></div>
+
+        <!-- 物品栏 -->
+        <div id="inventory-bar">
+            <span id="medkit-count">医疗包: 0</span>
+            <span id="food-count">食物: 0</span>
+        </div>
+    </div>
+
+    <!-- 游戏结束界面 -->
+    <div id="game-over" style="display:none;">
+        <h1 id="end-title">游戏结束</h1>
+        <div id="end-stats"></div>
+        <button id="restart-btn">重新开始</button>
+    </div>
+
+    <!-- 受伤遮罩 -->
+    <div id="damage-overlay" style="display:none;"></div>
+
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <!-- 游戏模块 -->
+    <script src="js/city.js"></script>
+    <script src="js/player.js"></script>
+    <script src="js/zombie.js"></script>
+    <script src="js/weapon.js"></script>
+    <script src="js/items.js"></script>
+    <script src="js/combat.js"></script>
+    <script src="js/survival.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
