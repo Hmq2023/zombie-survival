@@ -26,6 +26,20 @@ const Items = {
             type: 'weapon',
             weaponType: 'shotgun'
         },
+        smg: {
+            label: '冲锋枪',
+            color: 0x666666,
+            size: [0.35, 0.1, 0.1],
+            type: 'weapon',
+            weaponType: 'smg'
+        },
+        sniper: {
+            label: '狙击枪',
+            color: 0x556644,
+            size: [0.7, 0.1, 0.1],
+            type: 'weapon',
+            weaponType: 'sniper'
+        },
         ammo: {
             label: '弹药箱',
             color: 0xccaa44,
@@ -62,6 +76,10 @@ const Items = {
         this.spawnMultiple('rifle', 3);
         // 霰弹枪 × 2
         this.spawnMultiple('shotgun', 2);
+        // 冲锋枪 × 3
+        this.spawnMultiple('smg', 3);
+        // 狙击枪 × 1
+        this.spawnMultiple('sniper', 1);
         // 弹药箱 × 12
         this.spawnMultiple('ammo', 12);
         // 医疗包 × 8
@@ -162,6 +180,7 @@ const Items = {
 
         item.isActive = false;
         this.scene.remove(item.mesh);
+        Audio.playPickup();
 
         switch (item.def.type) {
             case 'weapon':

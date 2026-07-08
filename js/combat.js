@@ -72,6 +72,7 @@ const Combat = {
         if (killed) {
             this.killCount++;
             this.showKillFeedback(zombie.type);
+            Audio.playKill();
         }
     },
 

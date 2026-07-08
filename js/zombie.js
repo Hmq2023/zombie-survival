@@ -288,8 +288,8 @@ const Zombie = {
         // 动画：行走时摆动
         this.animate(z, dt);
 
-        // 建筑碰撞
-        City.resolveCollision(pos, 0.4);
+        // 建筑碰撞（丧尸可通过门口）
+        City.resolveZombieCollision(pos, 0.4, z.state === 'chase');
     },
 
     // 游荡行为
@@ -340,13 +340,21 @@ const Zombie = {
             return;
         }
 
-        // 向玩家移动
+        // 向玩家移动（允许通过门口）
         const dir = new THREE.Vector3().subVectors(playerPos, z.mesh.position);
         dir.y = 0;
         dir.normalize();
-        z.mesh.position.x += dir.x * z.speed * dt;
-        z.mesh.position.z += dir.z * z.speed * dt;
+
+        // 追击时加速
+        const chaseSpeed = z.speed * 1.1;
+        z.mesh.position.x += dir.x * chaseSpeed * dt;
+        z.mesh.position.z += dir.z * chaseSpeed * dt;
         z.mesh.rotation.y = Math.atan2(dir.x, dir.z);
+
+        // 追击时随机发出咆哮声
+        if (Math.random() < 0.005) {
+            Audio.playZombieGrowl();
+        }
     },
 
     // 攻击行为

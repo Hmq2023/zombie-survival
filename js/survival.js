@@ -61,6 +61,7 @@ const Survival = {
                 Effects.triggerDamageFlash(Math.min(1, amount / 30));
                 Effects.triggerScreenShake(Math.min(0.5, amount / 40));
             }
+            Audio.playHurt();
         }
 
         if (this.hp <= 0) {

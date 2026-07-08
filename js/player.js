@@ -1,5 +1,6 @@
 // player.js - 玩家控制系统
 const Player = {
+    scene: null,
     camera: null,
     position: new THREE.Vector3(0, 1.7, 0),
     velocity: new THREE.Vector3(0, 0, 0),
@@ -23,6 +24,11 @@ const Player = {
     isAlive: true,
     currentFloor: 0,
 
+    // 手电筒
+    flashlight: null,
+    flashlightOn: true,
+    flashlightBattery: 100,
+
     // 输入状态
     keys: {
         forward: false,
@@ -37,9 +43,19 @@ const Player = {
         reload: false
     },
 
-    init(camera) {
+    init(camera, scene) {
+        this.scene = scene;
         this.camera = camera;
         this.camera.position.copy(this.position);
+
+        // 手电筒（聚光灯）
+        this.flashlight = new THREE.SpotLight(0xffeedd, 2, 30, Math.PI / 6, 0.4, 1);
+        this.flashlight.position.copy(this.position);
+        this.flashlight.castShadow = true;
+        this.flashlight.shadow.mapSize.width = 512;
+        this.flashlight.shadow.mapSize.height = 512;
+        scene.add(this.flashlight);
+        scene.add(this.flashlight.target);
 
         // 键盘事件
         document.addEventListener('keydown', (e) => this.onKeyDown(e));
@@ -50,6 +66,14 @@ const Player = {
         document.addEventListener('pointerlockchange', () => {
             this.isLocked = document.pointerLockElement !== null;
         });
+    },
+
+    // 手电筒开关
+    toggleFlashlight() {
+        this.flashlightOn = !this.flashlightOn;
+        if (this.flashlight) {
+            this.flashlight.visible = this.flashlightOn;
+        }
     },
 
     onKeyDown(e) {
@@ -65,6 +89,9 @@ const Player = {
             case 'KeyQ': this.keys.useMedkit = true; break;
             case 'KeyF': this.keys.useFood = true; break;
             case 'KeyR': this.keys.reload = true; break;
+            case 'KeyT': this.toggleFlashlight(); break;
+            case 'KeyM': Minimap.toggle(); break;
+            case 'KeyN': Audio.toggleMute(); break;
             case 'Digit1': Weapon.switchWeapon(0); break;
             case 'Digit2': Weapon.switchWeapon(1); break;
             case 'Digit3': Weapon.switchWeapon(2); break;
@@ -165,6 +192,18 @@ const Player = {
 
         // 更新相机
         this.camera.position.copy(this.position);
+
+        // 更新手电筒位置和方向
+        if (this.flashlight && this.flashlightOn) {
+            this.flashlight.position.copy(this.position);
+            const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.quaternion);
+            this.flashlight.target.position.copy(this.position).add(forward.multiplyScalar(10));
+        }
+
+        // 脚步声
+        if (this.isGrounded && (this.keys.forward || this.keys.backward || this.keys.left || this.keys.right)) {
+            Audio.playFootstep(this.isSprinting ? this.moveSpeed * this.sprintMultiplier : this.moveSpeed);
+        }
     },
 
     // 处理交互输入（每帧检测，需要单次触发的逻辑）
@@ -211,5 +250,8 @@ const Player = {
         this.euler.set(0, 0, 0);
         this.camera.quaternion.setFromEuler(this.euler);
         this.camera.position.copy(this.position);
+        this.flashlightOn = true;
+        this.flashlightBattery = 100;
+        if (this.flashlight) this.flashlight.visible = true;
     }
 };

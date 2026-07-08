@@ -36,11 +36,37 @@ const Weapon = {
             reloadTime: 2.5,
             spread: 0.08,
             range: 20,
-            pellets: 8,          // 霰弹弹丸数
+            pellets: 8,
             headMult: 1.5,
             critChance: 0.05,
             critMult: 2.0,
             color: 0x443322
+        },
+        smg: {
+            name: '冲锋枪',
+            damage: 15,
+            fireRate: 0.08,
+            magSize: 35,
+            reloadTime: 1.8,
+            spread: 0.04,
+            range: 40,
+            headMult: 1.8,
+            critChance: 0.06,
+            critMult: 1.5,
+            color: 0x555555
+        },
+        sniper: {
+            name: '狙击枪',
+            damage: 120,
+            fireRate: 1.2,
+            magSize: 5,
+            reloadTime: 3.0,
+            spread: 0.005,
+            range: 150,
+            headMult: 4.0,
+            critChance: 0.15,
+            critMult: 2.0,
+            color: 0x445533
         }
     },
 
@@ -53,7 +79,9 @@ const Weapon = {
     ammo: {
         pistol: 0,
         rifle: 0,
-        shotgun: 0
+        shotgun: 0,
+        smg: 0,
+        sniper: 0
     },
 
     // 射击状态
@@ -76,7 +104,7 @@ const Weapon = {
         this.slots = [null, null, null];
         this.currentSlot = 0;
         this.currentWeapon = null;
-        this.ammo = { pistol: 0, rifle: 0, shotgun: 0 };
+        this.ammo = { pistol: 0, rifle: 0, shotgun: 0, smg: 0, sniper: 0 };
         this.fireTimer = 0;
         this.isReloading = false;
         this.reloadTimer = 0;
@@ -193,6 +221,78 @@ const Weapon = {
                 const pump = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.035, 0.08), gunDark);
                 pump.position.set(0, -0.01, -0.2);
                 group.add(pump);
+                this.viewmodelGroup.add(group);
+                this.viewmodel = group;
+                break;
+            }
+            case 'smg': {
+                // 冲锋枪
+                const group = new THREE.Group();
+                // 枪身（紧凑）
+                const body = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.055, 0.25), gunBody);
+                body.position.set(0, 0, -0.05);
+                group.add(body);
+                // 弹匣（弯曲）
+                const mag = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.12, 0.04), gunDark);
+                mag.position.set(0, -0.08, 0.02);
+                mag.rotation.x = 0.15;
+                group.add(mag);
+                // 枪管
+                const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 0.12, 6), gunMetal);
+                barrel.rotation.x = Math.PI / 2;
+                barrel.position.set(0, 0.005, -0.2);
+                group.add(barrel);
+                // 折叠枪托
+                const stock = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.04, 0.12), gunMetal);
+                stock.position.set(0, 0.01, 0.12);
+                group.add(stock);
+                // 握把
+                const grip = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.08, 0.04), gunDark);
+                grip.position.set(0, -0.06, 0.04);
+                grip.rotation.x = 0.2;
+                group.add(grip);
+                this.viewmodelGroup.add(group);
+                this.viewmodel = group;
+                break;
+            }
+            case 'sniper': {
+                // 狙击枪
+                const group = new THREE.Group();
+                // 枪身（修长）
+                const body = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.05, 0.55), gunBody);
+                body.position.set(0, 0, -0.15);
+                group.add(body);
+                // 枪管（长）
+                const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.3, 6), gunMetal);
+                barrel.rotation.x = Math.PI / 2;
+                barrel.position.set(0, 0.01, -0.5);
+                group.add(barrel);
+                // 枪托
+                const stock = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.06, 0.2), gunWood);
+                stock.position.set(0, -0.01, 0.2);
+                group.add(stock);
+                // 瞄准镜（大）
+                const scope = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.15, 6), gunDark);
+                scope.rotation.x = Math.PI / 2;
+                scope.position.set(0, 0.055, -0.1);
+                group.add(scope);
+                // 镜头
+                const lens = new THREE.Mesh(new THREE.SphereGeometry(0.02, 6, 6), new THREE.MeshBasicMaterial({ color: 0x4466aa }));
+                lens.position.set(0, 0.055, -0.18);
+                group.add(lens);
+                // 弹匣
+                const mag = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.08, 0.05), gunDark);
+                mag.position.set(0, -0.065, -0.05);
+                group.add(mag);
+                // 双脚架
+                const bipod1 = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.1, 4), gunMetal);
+                bipod1.position.set(-0.02, -0.05, -0.3);
+                bipod1.rotation.z = 0.3;
+                group.add(bipod1);
+                const bipod2 = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.1, 4), gunMetal);
+                bipod2.position.set(0.02, -0.05, -0.3);
+                bipod2.rotation.z = -0.3;
+                group.add(bipod2);
                 this.viewmodelGroup.add(group);
                 this.viewmodel = group;
                 break;

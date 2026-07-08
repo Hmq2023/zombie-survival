@@ -23,6 +23,9 @@ const Game = {
 
         // 请求指针锁定
         document.body.requestPointerLock();
+
+        // 播放环境音
+        Audio.playAmbient();
     },
 
     // 更新游戏状态
@@ -80,6 +83,19 @@ const Game = {
             buildingName.textContent = typeNames[info.buildingType] || '';
         } else {
             indicator.style.display = 'none';
+        }
+    },
+
+    // 更新手电筒HUD
+    updateFlashlightHUD() {
+        const el = document.getElementById('flashlight-state');
+        if (!el) return;
+        if (Player.flashlightOn) {
+            el.textContent = '🔦 ON';
+            el.style.color = '#ffdd88';
+        } else {
+            el.textContent = '🔦 OFF';
+            el.style.color = '#666';
         }
     },
 
@@ -228,6 +244,7 @@ const Game = {
         Weather.reset();
         Environment.reset();
         Effects.reset();
+        Minimap.reset();
 
         this.state = 'playing';
         this.startTime = Date.now();

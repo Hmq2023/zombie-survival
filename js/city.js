@@ -989,6 +989,9 @@ const City = {
 
             // 每层的内墙壁（带楼梯洞口）
             this.addFloorWalls(scene, x, z, width, depth, floorY, floorHeight, doorDir);
+
+            // 上层室内布局（根据建筑类型）
+            this.layoutUpperFloor(scene, x, z, width, depth, floorY, floorHeight, type);
         }
 
         // 楼梯（放在建筑角落）
@@ -1078,6 +1081,336 @@ const City = {
             plat.position.set(stairX, baseY + floorHeight, stairZ);
             scene.add(plat);
         }
+    },
+
+    // ========== 上层楼室内布局 ==========
+    layoutUpperFloor(scene, x, z, width, depth, floorY, floorH, type) {
+        const hw = width / 2, hd = depth / 2;
+        const t = this.mat;
+        const y = floorY; // 地板Y坐标
+
+        switch (type) {
+            case 'hospital': this.layoutUpperHospital(scene, x, z, width, depth, y, floorH); break;
+            case 'school': this.layoutUpperSchool(scene, x, z, width, depth, y, floorH); break;
+            case 'mall': this.layoutUpperMall(scene, x, z, width, depth, y, floorH); break;
+            case 'police': this.layoutUpperPolice(scene, x, z, width, depth, y, floorH); break;
+            case 'shop': this.layoutUpperShop(scene, x, z, width, depth, y, floorH); break;
+            case 'restaurant': this.layoutUpperRestaurant(scene, x, z, width, depth, y, floorH); break;
+            case 'bar': this.layoutUpperBar(scene, x, z, width, depth, y, floorH); break;
+            case 'tower': this.layoutUpperTower(scene, x, z, width, depth, y, floorH); break;
+        }
+
+        // 通用上层装饰
+        this.addUpperFloorDecor(scene, x, z, width, depth, y, floorH);
+    },
+
+    // 上层灯光
+    addUpperFloorLights(scene, x, z, width, depth, y, h, type) {
+        const lightColors = {
+            hospital: 0xffeecc, school: 0xffeeaa, mall: 0xffeedd,
+            police: 0xccddff, shop: 0xffe8cc, restaurant: 0xffddaa,
+            bar: 0xcc88ff, tower: 0xccddff
+        };
+        const color = lightColors[type] || 0xffeecc;
+        const numLights = Math.max(1, Math.floor(width * depth / 30));
+        for (let i = 0; i < numLights; i++) {
+            const lx = x + (Math.random() - 0.5) * (width - 2);
+            const lz = z + (Math.random() - 0.5) * (depth - 2);
+            const light = new THREE.PointLight(color, 0.3, 6);
+            light.position.set(lx, y + h - 0.3, lz);
+            scene.add(light);
+            this.addCeilingLamp(scene, lx, lz, y + h);
+        }
+    },
+
+    // 上层通用装饰
+    addUpperFloorDecor(scene, x, z, width, depth, y, h) {
+        // 碎片
+        for (let i = 0; i < 2; i++) {
+            const debrisGeo = new THREE.BoxGeometry(0.25, 0.2, 0.25);
+            const debrisMat = new THREE.MeshLambertMaterial({ color: 0x444433 });
+            const debris = new THREE.Mesh(debrisGeo, debrisMat);
+            debris.position.set(
+                x + (Math.random() - 0.5) * (width - 2),
+                y + 0.1,
+                z + (Math.random() - 0.5) * (depth - 2)
+            );
+            debris.rotation.set(Math.random(), Math.random() * Math.PI, Math.random());
+            scene.add(debris);
+        }
+        // 血迹
+        for (let i = 0; i < 2; i++) {
+            const bloodGeo = new THREE.CircleGeometry(0.15 + Math.random() * 0.2, 6);
+            const blood = new THREE.Mesh(bloodGeo, this.mat.blood);
+            blood.rotation.x = -Math.PI / 2;
+            blood.position.set(
+                x + (Math.random() - 0.5) * (width - 2),
+                y + 0.02,
+                z + (Math.random() - 0.5) * (depth - 2)
+            );
+            scene.add(blood);
+        }
+    },
+
+    // --- 医院上层：病房+走廊 ---
+    layoutUpperHospital(scene, x, z, width, depth, y, h) {
+        const hw = width / 2, hd = depth / 2;
+        const t = this.mat;
+        // 走廊隔墙
+        const corridorW = 1.5;
+        const wallGeo = new THREE.BoxGeometry(width - 2, h - 0.1, 0.1);
+        const wall = new THREE.Mesh(wallGeo, t.hospitalWall);
+        wall.position.set(x, y + h / 2, z + corridorW);
+        scene.add(wall);
+
+        // 病房（两侧）
+        for (let side = -1; side <= 1; side += 2) {
+            const roomZ = z + side * (hd / 2 + corridorW / 2);
+            for (let i = 0; i < 2; i++) {
+                const bedX = x - 3 + i * 4;
+                if (bedX > x - hw + 1 && bedX < x + hw - 1) {
+                    // 病床
+                    const bedGeo = new THREE.BoxGeometry(1.6, 0.45, 0.8);
+                    const bed = new THREE.Mesh(bedGeo, t.hospitalBed);
+                    bed.position.set(bedX, y + 0.225, roomZ);
+                    scene.add(bed);
+                    // 床头柜
+                    const cabGeo = new THREE.BoxGeometry(0.4, 0.5, 0.35);
+                    const cab = new THREE.Mesh(cabGeo, t.metal);
+                    cab.position.set(bedX + 1, y + 0.25, roomZ);
+                    scene.add(cab);
+                }
+            }
+        }
+        this.addUpperFloorLights(scene, x, z, width, depth, y, h, 'hospital');
+    },
+
+    // --- 学校上层：教室 ---
+    layoutUpperSchool(scene, x, z, width, depth, y, h) {
+        const hw = width / 2, hd = depth / 2;
+        const t = this.mat;
+        // 黑板
+        const boardGeo = new THREE.BoxGeometry(width - 3, 1.2, 0.06);
+        const board = new THREE.Mesh(boardGeo, t.chalkboard);
+        board.position.set(x, y + 1.6, z + hd - 0.1);
+        scene.add(board);
+        // 讲台
+        const podiumGeo = new THREE.BoxGeometry(1.5, 0.25, 0.8);
+        const podium = new THREE.Mesh(podiumGeo, t.deskWood);
+        podium.position.set(x, y + 0.125, z + hd - 1.5);
+        scene.add(podium);
+        // 课桌椅
+        const rows = Math.floor((depth - 5) / 2.5);
+        const cols = Math.min(3, Math.floor((width - 3) / 2.5));
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                const dx = x - (cols - 1) * 1.25 + c * 2.5;
+                const dz = z + hd - 3.5 - r * 2.5;
+                if (dz > z - hd + 1 && dz < z + hd - 1) {
+                    const deskGeo = new THREE.BoxGeometry(0.7, 0.04, 0.45);
+                    const desk = new THREE.Mesh(deskGeo, t.deskWood);
+                    desk.position.set(dx, y + 0.7, dz);
+                    scene.add(desk);
+                    this.addChair(scene, dx + 0.5, dz, t.deskWood, Math.PI);
+                }
+            }
+        }
+        this.addUpperFloorLights(scene, x, z, width, depth, y, h, 'school');
+    },
+
+    // --- 商场上层：更多店铺 ---
+    layoutUpperMall(scene, x, z, width, depth, y, h) {
+        const hw = width / 2, hd = depth / 2;
+        const t = this.mat;
+        // 扶手/栏杆（中庭边缘）
+        const railGeo = new THREE.BoxGeometry(width - 2, 0.9, 0.05);
+        const railMat = new THREE.MeshLambertMaterial({ color: 0x666666 });
+        const rail1 = new THREE.Mesh(railGeo, railMat);
+        rail1.position.set(x, y + 0.45, z + 1);
+        scene.add(rail1);
+        const rail2 = new THREE.Mesh(railGeo, railMat);
+        rail2.position.set(x, y + 0.45, z - 1);
+        scene.add(rail2);
+        // 店铺货架
+        const shopColors = [0xff44aa, 0x44aaff, 0xaaff44, 0xffaa44];
+        for (let i = 0; i < 4; i++) {
+            const sx = x - hw + 3 + i * ((width - 6) / 3);
+            const sz = z + (i % 2 === 0 ? hd - 2 : -hd + 2);
+            if (sx > x - hw + 1 && sx < x + hw - 1) {
+                const shelfGeo = new THREE.BoxGeometry(0.6, 1.5, 1.0);
+                const shelf = new THREE.Mesh(shelfGeo, t.wood);
+                shelf.position.set(sx, y + 0.75, sz);
+                scene.add(shelf);
+                // 霓虹招牌
+                const signGeo = new THREE.BoxGeometry(1.5, 0.3, 0.04);
+                const signMat = new THREE.MeshBasicMaterial({ color: shopColors[i] });
+                const sign = new THREE.Mesh(signGeo, signMat);
+                sign.position.set(sx, y + 2.2, sz + (i % 2 === 0 ? -0.8 : 0.8));
+                scene.add(sign);
+            }
+        }
+        this.addUpperFloorLights(scene, x, z, width, depth, y, h, 'mall');
+    },
+
+    // --- 警察局上层：办公室 ---
+    layoutUpperPolice(scene, x, z, width, depth, y, h) {
+        const hw = width / 2, hd = depth / 2;
+        const t = this.mat;
+        // 办公桌
+        const deskMat = new THREE.MeshLambertMaterial({ color: 0x4a4a4a });
+        const positions = [
+            [x - 3, z - 1], [x - 3, z + 2], [x + 2, z - 1], [x + 2, z + 2]
+        ];
+        for (const [dx, dz] of positions) {
+            if (dx > x - hw + 1 && dx < x + hw - 1 && dz > z - hd + 1 && dz < z + hd - 1) {
+                const deskGeo = new THREE.BoxGeometry(1.0, 0.04, 0.6);
+                const desk = new THREE.Mesh(deskGeo, deskMat);
+                desk.position.set(dx, y + 0.73, dz);
+                scene.add(desk);
+                // 显示器
+                const monGeo = new THREE.BoxGeometry(0.35, 0.25, 0.02);
+                const mon = new THREE.Mesh(monGeo, t.screen);
+                mon.position.set(dx, y + 0.98, dz - 0.15);
+                scene.add(mon);
+                this.addChair(scene, dx, dz + 0.6, deskMat, 0);
+            }
+        }
+        // 文件柜
+        const cabinetGeo = new THREE.BoxGeometry(1.5, 1.8, 0.5);
+        const cabinetMat = new THREE.MeshLambertMaterial({ color: 0x555555 });
+        const cabinet = new THREE.Mesh(cabinetGeo, cabinetMat);
+        cabinet.position.set(x + hw - 1.2, y + 0.9, z);
+        scene.add(cabinet);
+        this.addUpperFloorLights(scene, x, z, width, depth, y, h, 'police');
+    },
+
+    // --- 商店上层：仓库 ---
+    layoutUpperShop(scene, x, z, width, depth, y, h) {
+        const hw = width / 2, hd = depth / 2;
+        const t = this.mat;
+        // 货架（整齐排列）
+        const shelfMat = new THREE.MeshLambertMaterial({ color: 0x5a4a3a });
+        for (let i = 0; i < 3; i++) {
+            const sx = x - hw + 2 + i * 3;
+            if (sx < x + hw - 1) {
+                const shelfGeo = new THREE.BoxGeometry(0.8, 2.0, 1.5);
+                const shelf = new THREE.Mesh(shelfGeo, shelfMat);
+                shelf.position.set(sx, y + 1.0, z);
+                scene.add(shelf);
+                // 箱子
+                for (let b = 0; b < 3; b++) {
+                    if (Math.random() < 0.6) {
+                        const boxGeo = new THREE.BoxGeometry(0.4, 0.3, 0.4);
+                        const boxColors = [0x884422, 0x225588, 0x448822];
+                        const boxMat = new THREE.MeshLambertMaterial({
+                            color: boxColors[Math.floor(Math.random() * boxColors.length)]
+                        });
+                        const box = new THREE.Mesh(boxGeo, boxMat);
+                        box.position.set(sx + (Math.random() - 0.5) * 0.4, y + 0.3 + b * 0.65, z + (Math.random() - 0.5) * 0.8);
+                        scene.add(box);
+                    }
+                }
+            }
+        }
+        this.addUpperFloorLights(scene, x, z, width, depth, y, h, 'shop');
+    },
+
+    // --- 餐厅上层：包间 ---
+    layoutUpperRestaurant(scene, x, z, width, depth, y, h) {
+        const hw = width / 2, hd = depth / 2;
+        const t = this.mat;
+        const tableMat = new THREE.MeshLambertMaterial({ color: 0x5a3a2a });
+        // 包间餐桌
+        for (let i = 0; i < 2; i++) {
+            const tx = x - 3 + i * 5;
+            const tz = z;
+            if (tx > x - hw + 1.5 && tx < x + hw - 1.5) {
+                // 圆桌
+                const tableGeo = new THREE.CylinderGeometry(0.8, 0.8, 0.05, 12);
+                const table = new THREE.Mesh(tableGeo, tableMat);
+                table.position.set(tx, y + 0.75, tz);
+                scene.add(table);
+                const legGeo = new THREE.CylinderGeometry(0.06, 0.06, 0.75, 6);
+                const leg = new THREE.Mesh(legGeo, tableMat);
+                leg.position.set(tx, y + 0.375, tz);
+                scene.add(leg);
+                // 椅子
+                for (let c = 0; c < 4; c++) {
+                    const angle = (c / 4) * Math.PI * 2;
+                    this.addChair(scene, tx + Math.cos(angle) * 1.1, tz + Math.sin(angle) * 1.1, t.wood, angle + Math.PI);
+                }
+            }
+        }
+        this.addUpperFloorLights(scene, x, z, width, depth, y, h, 'restaurant');
+    },
+
+    // --- 酒楼上层：KTV包间 ---
+    layoutUpperBar(scene, x, z, width, depth, y, h) {
+        const hw = width / 2, hd = depth / 2;
+        const t = this.mat;
+        // 沙发（卡座）
+        const sofaMat = new THREE.MeshLambertMaterial({ color: 0x551111 });
+        const sofaPositions = [
+            [x - hw + 2, z - 2], [x + hw - 2, z - 2],
+            [x - hw + 2, z + 2], [x + hw - 2, z + 2]
+        ];
+        for (const [sx, sz] of sofaPositions) {
+            if (sx > x - hw + 0.8 && sx < x + hw - 0.8 && sz > z - hd + 0.8 && sz < z + hd - 0.8) {
+                const sofaGeo = new THREE.BoxGeometry(1.8, 0.7, 0.6);
+                const sofa = new THREE.Mesh(sofaGeo, sofaMat);
+                sofa.position.set(sx, y + 0.35, sz);
+                scene.add(sofa);
+                // 靠背
+                const backGeo = new THREE.BoxGeometry(1.8, 0.5, 0.15);
+                const back = new THREE.Mesh(backGeo, sofaMat);
+                back.position.set(sx, y + 0.85, sz - 0.35);
+                scene.add(back);
+                // 茶几
+                const tableGeo = new THREE.BoxGeometry(0.8, 0.4, 0.6);
+                const table = new THREE.Mesh(tableGeo, t.wood);
+                table.position.set(sx + 1.2, y + 0.2, sz);
+                scene.add(table);
+            }
+        }
+        // 彩灯
+        const colors = [0xff0044, 0x4400ff, 0xff4400, 0x00ff44];
+        for (let i = 0; i < 4; i++) {
+            const light = new THREE.PointLight(colors[i], 0.3, 5);
+            light.position.set(
+                x + (Math.random() - 0.5) * (width - 3),
+                y + h - 0.3,
+                z + (Math.random() - 0.5) * (depth - 3)
+            );
+            scene.add(light);
+        }
+    },
+
+    // --- 大厦上层：更多办公室 ---
+    layoutUpperTower(scene, x, z, width, depth, y, h) {
+        const hw = width / 2, hd = depth / 2;
+        const t = this.mat;
+        const deskMat = new THREE.MeshLambertMaterial({ color: 0x4a4a4a });
+        // 办公桌网格
+        for (let dx = -1; dx <= 1; dx++) {
+            for (let dz = -1; dz <= 1; dz++) {
+                const deskX = x + dx * 3;
+                const deskZ = z + dz * 3;
+                if (deskX > x - hw + 1 && deskX < x + hw - 1 && deskZ > z - hd + 1 && deskZ < z + hd - 1) {
+                    const topGeo = new THREE.BoxGeometry(1.1, 0.04, 0.6);
+                    const top = new THREE.Mesh(topGeo, deskMat);
+                    top.position.set(deskX, y + 0.73, deskZ);
+                    scene.add(top);
+                    if (Math.random() < 0.6) {
+                        const monGeo = new THREE.BoxGeometry(0.4, 0.3, 0.02);
+                        const mon = new THREE.Mesh(monGeo, t.screen);
+                        mon.position.set(deskX, y + 0.98, deskZ - 0.15);
+                        scene.add(mon);
+                    }
+                    this.addChair(scene, deskX, deskZ + 0.6, new THREE.MeshLambertMaterial({ color: 0x333333 }), 0);
+                }
+            }
+        }
+        this.addUpperFloorLights(scene, x, z, width, depth, y, h, 'tower');
     },
 
     // 查询玩家所在楼层（供player.js调用）
@@ -1899,6 +2232,90 @@ const City = {
             }
         }
         return pos;
+    },
+
+    // 丧尸专用碰撞：追击时可通过门口进入建筑
+    resolveZombieCollision(pos, radius, isChasing) {
+        for (const b of this.buildings) {
+            if (b.enterable) {
+                if (pos.x > b.minX - radius && pos.x < b.maxX + radius &&
+                    pos.z > b.minZ - radius && pos.z < b.maxZ + radius) {
+                    if (isChasing && b.wallSegments) {
+                        // 追击时：使用修改后的碰撞段（门口处有开口）
+                        this.resolveWallCollisionWithDoor(pos, radius, b);
+                    } else {
+                        this.resolveWallCollision(pos, radius, b);
+                    }
+                }
+            } else {
+                // 实心建筑：AABB碰撞
+                const expandedMinX = b.minX - radius;
+                const expandedMaxX = b.maxX + radius;
+                const expandedMinZ = b.minZ - radius;
+                const expandedMaxZ = b.maxZ + radius;
+
+                if (pos.x > expandedMinX && pos.x < expandedMaxX &&
+                    pos.z > expandedMinZ && pos.z < expandedMaxZ) {
+                    const dx1 = pos.x - expandedMinX;
+                    const dx2 = expandedMaxX - pos.x;
+                    const dz1 = pos.z - expandedMinZ;
+                    const dz2 = expandedMaxZ - pos.z;
+                    const minDist = Math.min(dx1, dx2, dz1, dz2);
+
+                    if (minDist === dx1) pos.x = expandedMinX;
+                    else if (minDist === dx2) pos.x = expandedMaxX;
+                    else if (minDist === dz1) pos.z = expandedMinZ;
+                    else pos.z = expandedMaxZ;
+                }
+            }
+        }
+        return pos;
+    },
+
+    // 带门口开口的碰撞（丧尸追击用）
+    resolveWallCollisionWithDoor(pos, radius, building) {
+        if (!building.wallSegments) return;
+
+        const doorDir = building.doorDir;
+        const cx = building.centerX;
+        const cz = building.centerZ;
+        const hw = building.width / 2;
+        const hd = building.depth / 2;
+        const doorHW = 1.0;
+
+        // 构建带门口开口的碰撞段
+        const segments = [];
+
+        // 前墙 (+Z)
+        if (doorDir === 0) {
+            segments.push({ x1: cx - hw, z1: cz + hd, x2: cx - doorHW, z2: cz + hd });
+            segments.push({ x1: cx + doorHW, z1: cz + hd, x2: cx + hw, z2: cz + hd });
+        } else {
+            segments.push({ x1: cx - hw, z1: cz + hd, x2: cx + hw, z2: cz + hd });
+        }
+        // 后墙 (-Z)
+        if (doorDir === 1) {
+            segments.push({ x1: cx - hw, z1: cz - hd, x2: cx - doorHW, z2: cz - hd });
+            segments.push({ x1: cx + doorHW, z1: cz - hd, x2: cx + hw, z2: cz - hd });
+        } else {
+            segments.push({ x1: cx - hw, z1: cz - hd, x2: cx + hw, z2: cz - hd });
+        }
+        // 右墙 (+X)
+        if (doorDir === 2) {
+            segments.push({ x1: cx + hw, z1: cz - hd, x2: cx + hw, z2: cz - doorHW });
+            segments.push({ x1: cx + hw, z1: cz + doorHW, x2: cx + hw, z2: cz + hd });
+        } else {
+            segments.push({ x1: cx + hw, z1: cz - hd, x2: cx + hw, z2: cz + hd });
+        }
+        // 左墙 (-X)
+        if (doorDir === 3) {
+            segments.push({ x1: cx - hw, z1: cz - hd, x2: cx - hw, z2: cz - doorHW });
+            segments.push({ x1: cx - hw, z1: cz + doorHW, x2: cx - hw, z2: cz + hd });
+        } else {
+            segments.push({ x1: cx - hw, z1: cz - hd, x2: cx - hw, z2: cz + hd });
+        }
+
+        this.resolveWallCollisionSegments(pos, radius, segments);
     },
 
     resolveWallCollision(pos, radius, building) {

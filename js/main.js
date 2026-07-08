@@ -37,7 +37,7 @@
 
         // 初始化子系统
         City.generate(scene);
-        Player.init(camera);
+        Player.init(camera, scene);
         Zombie.init(scene);
         Weapon.init(scene);
         Items.init(scene);
@@ -57,6 +57,12 @@
 
         // 屏幕特效
         Effects.init();
+
+        // 小地图
+        Minimap.init();
+
+        // 音效系统
+        Audio.init();
 
         // 生成游戏对象
         Zombie.spawnAll(scene);
@@ -189,12 +195,14 @@
                 const shotResult = Weapon.fire(camera);
                 if (shotResult) {
                     Combat.processShot(shotResult);
+                    Audio.playGunshot(Weapon.currentWeapon);
                 }
             }
 
             // 处理换弹
             if (Player.consumeReload()) {
                 Weapon.startReload();
+                Audio.playReload();
             }
 
             // 处理拾取
@@ -223,6 +231,10 @@
             Game.updatePickupHint();
             Game.updateFloorIndicator();
             Game.updateWeatherHUD();
+            Game.updateFlashlightHUD();
+
+            // 更新小地图
+            Minimap.update(Player.position, Player.euler.y);
         }
 
         renderer.render(scene, camera);

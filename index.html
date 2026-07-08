@@ -19,7 +19,7 @@
             <p>左键 - 射击 | R - 换弹</p>
             <p>E - 拾取 | Q - 使用医疗包 | F - 使用食物</p>
             <p>1/2/3 - 切换武器 | Shift - 奔跑 | 空格 - 跳跃</p>
-            <p>进入多层建筑后，靠近楼梯可上下楼</p>
+            <p>T - 手电筒 | M - 小地图 | N - 静音 | 楼梯上下楼</p>
         </div>
     </div>
 
@@ -69,6 +69,11 @@
             <span id="weather-icon">☀ 晴天</span>
         </div>
 
+        <!-- 小地图 -->
+        <div id="minimap">
+            <canvas id="minimap-canvas"></canvas>
+        </div>
+
         <!-- 中央准星 -->
         <div id="crosshair">+</div>
 
@@ -82,6 +87,7 @@
         <div id="inventory-bar">
             <span id="medkit-count">医疗包: 0</span>
             <span id="food-count">食物: 0</span>
+            <span id="flashlight-state">🔦 ON</span>
         </div>
     </div>
 
@@ -109,6 +115,8 @@
     <script src="js/city.js"></script>
     <script src="js/environment.js"></script>
     <script src="js/effects.js"></script>
+    <script src="js/minimap.js"></script>
+    <script src="js/audio.js"></script>
     <script src="js/player.js"></script>
     <script src="js/zombie.js"></script>
     <script src="js/weapon.js"></script>
