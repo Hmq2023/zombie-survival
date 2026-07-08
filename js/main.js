@@ -52,6 +52,12 @@
             hemisphere: hemisphereLight
         });
 
+        // 环境增强（大气粒子、火焰、植被、街道设施）
+        Environment.init(scene);
+
+        // 屏幕特效
+        Effects.init();
+
         // 生成游戏对象
         Zombie.spawnAll(scene);
         Items.spawnAll(scene);
@@ -168,6 +174,12 @@
 
             // 更新天气
             Weather.update(dt, Player.position);
+
+            // 更新环境特效
+            Environment.update(dt, Player.position);
+
+            // 更新屏幕特效
+            Effects.update(dt);
 
             // 更新游戏状态
             Game.update(dt);

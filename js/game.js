@@ -226,6 +226,8 @@ const Game = {
         Combat.reset();
         Player.reset();
         Weather.reset();
+        Environment.reset();
+        Effects.reset();
 
         this.state = 'playing';
         this.startTime = Date.now();

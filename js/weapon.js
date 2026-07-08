@@ -66,6 +66,11 @@ const Weapon = {
     muzzleFlash: null,
     muzzleFlashTimer: 0,
 
+    // 第一人称武器模型
+    viewmodel: null,
+    viewmodelBob: 0,
+    viewmodelRecoil: 0,
+
     init(scene) {
         this.scene = scene;
         this.slots = [null, null, null];
@@ -82,6 +87,117 @@ const Weapon = {
         this.muzzleFlash = new THREE.Mesh(flashGeo, flashMat);
         this.muzzleFlash.visible = false;
         scene.add(this.muzzleFlash);
+
+        // 创建第一人称武器模型组
+        this.viewmodelGroup = new THREE.Group();
+        this.viewmodelGroup.position.set(0.35, -0.3, -0.5);
+        scene.add(this.viewmodelGroup);
+    },
+
+    // 创建武器视图模型
+    createViewmodel(weaponType) {
+        // 清除旧模型
+        while (this.viewmodelGroup.children.length > 0) {
+            this.viewmodelGroup.remove(this.viewmodelGroup.children[0]);
+        }
+
+        const gunMetal = new THREE.MeshLambertMaterial({ color: 0x333333 });
+        const gunBody = new THREE.MeshLambertMaterial({ color: 0x444444 });
+        const gunWood = new THREE.MeshLambertMaterial({ color: 0x5a4a3a });
+        const gunDark = new THREE.MeshLambertMaterial({ color: 0x222222 });
+
+        switch (weaponType) {
+            case 'pistol': {
+                // 手枪
+                const group = new THREE.Group();
+                // 枪身
+                const body = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.08, 0.22), gunMetal);
+                body.position.set(0, 0, -0.05);
+                group.add(body);
+                // 握把
+                const grip = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.12, 0.06), gunDark);
+                grip.position.set(0, -0.08, 0.04);
+                grip.rotation.x = 0.2;
+                group.add(grip);
+                // 枪管
+                const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.1, 6), gunMetal);
+                barrel.rotation.x = Math.PI / 2;
+                barrel.position.set(0, 0.01, -0.2);
+                group.add(barrel);
+                // 准星
+                const sight = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.02, 0.015), gunMetal);
+                sight.position.set(0, 0.05, -0.15);
+                group.add(sight);
+                this.viewmodelGroup.add(group);
+                this.viewmodel = group;
+                break;
+            }
+            case 'rifle': {
+                // 步枪
+                const group = new THREE.Group();
+                // 枪身
+                const body = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.06, 0.45), gunBody);
+                body.position.set(0, 0, -0.1);
+                group.add(body);
+                // 枪托
+                const stock = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.07, 0.15), gunWood);
+                stock.position.set(0, -0.01, 0.18);
+                group.add(stock);
+                // 弹匣
+                const mag = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.1, 0.06), gunDark);
+                mag.position.set(0, -0.08, -0.02);
+                group.add(mag);
+                // 枪管
+                const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.2, 6), gunMetal);
+                barrel.rotation.x = Math.PI / 2;
+                barrel.position.set(0, 0.01, -0.38);
+                group.add(barrel);
+                // 前握把
+                const foregrip = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.04, 0.08), gunWood);
+                foregrip.position.set(0, -0.03, -0.18);
+                group.add(foregrip);
+                // 瞄准镜
+                const scope = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.1, 6), gunDark);
+                scope.rotation.x = Math.PI / 2;
+                scope.position.set(0, 0.05, -0.08);
+                group.add(scope);
+                this.viewmodelGroup.add(group);
+                this.viewmodel = group;
+                break;
+            }
+            case 'shotgun': {
+                // 霰弹枪
+                const group = new THREE.Group();
+                // 枪身
+                const body = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.05, 0.4), gunBody);
+                body.position.set(0, 0, -0.08);
+                group.add(body);
+                // 枪管（双管）
+                const barrel1 = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.25, 6), gunMetal);
+                barrel1.rotation.x = Math.PI / 2;
+                barrel1.position.set(-0.012, 0.02, -0.33);
+                group.add(barrel1);
+                const barrel2 = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.25, 6), gunMetal);
+                barrel2.rotation.x = Math.PI / 2;
+                barrel2.position.set(0.012, 0.02, -0.33);
+                group.add(barrel2);
+                // 枪托
+                const stock = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.06, 0.18), gunWood);
+                stock.position.set(0, -0.01, 0.17);
+                group.add(stock);
+                // 护木
+                const foregrip = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.04, 0.1), gunWood);
+                foregrip.position.set(0, -0.03, -0.15);
+                group.add(foregrip);
+                // 泵动部件
+                const pump = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.035, 0.08), gunDark);
+                pump.position.set(0, -0.01, -0.2);
+                group.add(pump);
+                this.viewmodelGroup.add(group);
+                this.viewmodel = group;
+                break;
+            }
+        }
     },
 
     // 拾取武器
@@ -103,6 +219,7 @@ const Weapon = {
                 if (this.currentWeapon === null) {
                     this.switchWeapon(i);
                 }
+                this.createViewmodel(this.slots[this.currentSlot] || weaponType);
                 return true;
             }
         }
@@ -112,6 +229,7 @@ const Weapon = {
         this.slots[this.currentSlot] = weaponType;
         this.ammo[weaponType] = this.definitions[weaponType].magSize;
         this.currentWeapon = weaponType;
+        this.createViewmodel(weaponType);
         return true;
     },
 
@@ -133,6 +251,11 @@ const Weapon = {
         this.fireTimer = 0;
         this.isReloading = false;
         this.reloadTimer = 0;
+
+        // 更新视图模型
+        if (this.currentWeapon) {
+            this.createViewmodel(this.currentWeapon);
+        }
     },
 
     // 更新
@@ -154,6 +277,67 @@ const Weapon = {
                 this.muzzleFlash.visible = false;
             }
         }
+
+        // 更新武器视图模型动画
+        this.updateViewmodel(dt);
+    },
+
+    // 更新视图模型动画
+    updateViewmodel(dt) {
+        if (!this.viewmodel || !Player.camera) return;
+
+        // 跟随相机
+        const cam = Player.camera;
+        const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(cam.quaternion);
+        const right = new THREE.Vector3(1, 0, 0).applyQuaternion(cam.quaternion);
+        const up = new THREE.Vector3(0, 1, 0).applyQuaternion(cam.quaternion);
+
+        this.viewmodelGroup.position.copy(cam.position)
+            .add(forward.multiplyScalar(-0.5))
+            .add(right.multiplyScalar(0.35))
+            .add(up.multiplyScalar(-0.3));
+        this.viewmodelGroup.quaternion.copy(cam.quaternion);
+
+        // 行走摆动
+        const isMoving = Player.keys.forward || Player.keys.backward || Player.keys.left || Player.keys.right;
+        const isSprinting = Player.isSprinting;
+
+        if (isMoving) {
+            const bobSpeed = isSprinting ? 12 : 8;
+            const bobAmount = isSprinting ? 0.025 : 0.015;
+            this.viewmodelBob += dt * bobSpeed;
+            this.viewmodelGroup.position.x = 0.35 + Math.sin(this.viewmodelBob) * bobAmount;
+            this.viewmodelGroup.position.y = -0.3 + Math.abs(Math.sin(this.viewmodelBob * 2)) * bobAmount * 0.5;
+        } else {
+            // 静止时轻微呼吸摆动
+            this.viewmodelBob += dt * 2;
+            this.viewmodelGroup.position.x = 0.35 + Math.sin(this.viewmodelBob * 0.5) * 0.003;
+            this.viewmodelGroup.position.y = -0.3 + Math.sin(this.viewmodelBob * 0.7) * 0.002;
+        }
+
+        // 后坐力恢复
+        if (this.viewmodelRecoil > 0) {
+            this.viewmodelRecoil *= Math.pow(0.01, dt);
+            if (this.viewmodelRecoil < 0.001) this.viewmodelRecoil = 0;
+        }
+        this.viewmodelGroup.position.z = -0.5 + this.viewmodelRecoil;
+
+        // 换弹动画
+        if (this.isReloading) {
+            const progress = 1 - (this.reloadTimer / this.definitions[this.currentWeapon].reloadTime);
+            if (progress < 0.3) {
+                // 下移
+                this.viewmodelGroup.rotation.x = progress / 0.3 * -0.3;
+            } else if (progress < 0.7) {
+                // 保持
+                this.viewmodelGroup.rotation.x = -0.3;
+            } else {
+                // 回位
+                this.viewmodelGroup.rotation.x = -0.3 * (1 - (progress - 0.7) / 0.3);
+            }
+        } else {
+            this.viewmodelGroup.rotation.x *= Math.pow(0.001, dt);
+        }
     },
 
     // 射击
@@ -174,6 +358,9 @@ const Weapon = {
 
         // 枪口闪光效果
         this.showMuzzleFlash(camera);
+
+        // 后坐力
+        this.viewmodelRecoil = 0.05;
 
         // 计算射击方向（带散布）
         const direction = new THREE.Vector3(0, 0, -1);
@@ -264,5 +451,13 @@ const Weapon = {
         this.fireTimer = 0;
         this.isReloading = false;
         this.reloadTimer = 0;
+        this.viewmodelRecoil = 0;
+        // 清除视图模型
+        if (this.viewmodelGroup) {
+            while (this.viewmodelGroup.children.length > 0) {
+                this.viewmodelGroup.remove(this.viewmodelGroup.children[0]);
+            }
+        }
+        this.viewmodel = null;
     }
 };

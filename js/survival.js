@@ -56,6 +56,11 @@ const Survival = {
 
         if (source !== 'hunger' && source !== 'starvation') {
             Combat.showDamageOverlay();
+            // 屏幕特效
+            if (typeof Effects !== 'undefined') {
+                Effects.triggerDamageFlash(Math.min(1, amount / 30));
+                Effects.triggerScreenShake(Math.min(0.5, amount / 40));
+            }
         }
 
         if (this.hp <= 0) {

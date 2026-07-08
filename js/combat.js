@@ -63,6 +63,12 @@ const Combat = {
         // 显示伤害反馈
         this.showDamageFeedback(hitPoint, finalDamage, bodyPart, isCrit, killed);
 
+        // 命中标记特效
+        if (typeof Effects !== 'undefined') {
+            Effects.showHitMarker(killed, bodyPart === 'head');
+            Effects.triggerRecoil(0.1);
+        }
+
         if (killed) {
             this.killCount++;
             this.showKillFeedback(zombie.type);
