@@ -19,6 +19,7 @@
             <p>左键 - 射击 | R - 换弹</p>
             <p>E - 拾取 | Q - 使用医疗包 | F - 使用食物</p>
             <p>1/2/3 - 切换武器 | Shift - 奔跑 | 空格 - 跳跃</p>
+            <p>进入多层建筑后，靠近楼梯可上下楼</p>
         </div>
     </div>
 
@@ -56,6 +57,18 @@
             <span id="zombie-count">剩余丧尸: 0</span>
         </div>
 
+        <!-- 楼层指示器 -->
+        <div id="floor-indicator" style="display:none;">
+            <span id="floor-text">1F</span>
+            <span id="building-name"></span>
+        </div>
+
+        <!-- 天气/时间指示器 -->
+        <div id="weather-hud">
+            <span id="game-time">08:00</span>
+            <span id="weather-icon">☀ 晴天</span>
+        </div>
+
         <!-- 中央准星 -->
         <div id="crosshair">+</div>
 
@@ -86,6 +99,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <!-- 游戏模块 -->
+    <script src="js/weather.js"></script>
     <script src="js/city.js"></script>
     <script src="js/player.js"></script>
     <script src="js/zombie.js"></script>

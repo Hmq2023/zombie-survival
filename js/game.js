@@ -51,6 +51,66 @@ const Game = {
         }
     },
 
+    // 更新楼层指示器
+    updateFloorIndicator() {
+        const indicator = document.getElementById('floor-indicator');
+        const floorText = document.getElementById('floor-text');
+        const buildingName = document.getElementById('building-name');
+        if (!indicator) return;
+
+        const info = City.currentFloorInfo;
+        if (info.inBuilding && info.totalFloors > 1) {
+            indicator.style.display = 'block';
+            const floorNames = ['1F', '2F', '3F', '4F', '5F'];
+            floorText.textContent = floorNames[info.floor] || (info.floor + 1) + 'F';
+            const typeNames = {
+                hospital: '医院', school: '学校', mall: '商场',
+                police: '警察局', shop: '商店', restaurant: '餐厅',
+                bar: '酒楼', tower: '大厦'
+            };
+            buildingName.textContent = typeNames[info.buildingType] || '';
+        } else if (info.inBuilding) {
+            indicator.style.display = 'block';
+            floorText.textContent = '1F';
+            const typeNames = {
+                hospital: '医院', school: '学校', mall: '商场',
+                police: '警察局', shop: '商店', restaurant: '餐厅',
+                bar: '酒楼', tower: '大厦'
+            };
+            buildingName.textContent = typeNames[info.buildingType] || '';
+        } else {
+            indicator.style.display = 'none';
+        }
+    },
+
+    // 更新天气/时间HUD
+    updateWeatherHUD() {
+        const timeEl = document.getElementById('game-time');
+        const weatherEl = document.getElementById('weather-icon');
+        if (!timeEl || !weatherEl) return;
+
+        timeEl.textContent = Weather.getTimeString();
+        weatherEl.textContent = Weather.getWeatherName();
+
+        // 夜晚时时间文字变暗
+        if (Weather.isNight()) {
+            timeEl.style.color = '#8899bb';
+            timeEl.style.textShadow = '0 0 8px #4466aa, 2px 2px 4px #000';
+        } else {
+            timeEl.style.color = '#ffddaa';
+            timeEl.style.textShadow = '0 0 8px #ffaa44, 2px 2px 4px #000';
+        }
+
+        // 雨天时天气文字变蓝
+        if (Weather.weather === 'rainy') {
+            weatherEl.style.color = '#88aacc';
+        } else if (Weather.weather === 'cloudy') {
+            weatherEl.style.color = '#999';
+        } else {
+            weatherEl.style.color = '#ffdd88';
+        }
+    },
+
     // 更新武器HUD
     updateWeaponHUD() {
         const nameEl = document.getElementById('weapon-name');
@@ -165,6 +225,7 @@ const Game = {
         Items.reset();
         Combat.reset();
         Player.reset();
+        Weather.reset();
 
         this.state = 'playing';
         this.startTime = Date.now();

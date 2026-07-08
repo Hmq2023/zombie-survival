@@ -21,6 +21,7 @@ const Player = {
 
     // 状态
     isAlive: true,
+    currentFloor: 0,
 
     // 输入状态
     keys: {
@@ -135,9 +136,21 @@ const Player = {
         this.position.y += this.velocity.y * dt;
         this.position.z += this.velocity.z * dt;
 
+        // 楼梯地面检测（多层建筑）
+        const stairGround = City.getStairGroundY(this.position);
+        let effectiveGround = Math.max(this.groundY, stairGround);
+
+        // 楼层地面：防止从上层掉落
+        const floorInfo = City.getPlayerFloor(this.position);
+        this.currentFloor = floorInfo.floor;
+        if (floorInfo.inBuilding && floorInfo.floor > 0) {
+            const floorGround = floorInfo.floorY + 1.7;
+            effectiveGround = Math.max(effectiveGround, floorGround);
+        }
+
         // 地面检测
-        if (this.position.y <= this.groundY) {
-            this.position.y = this.groundY;
+        if (this.position.y <= effectiveGround) {
+            this.position.y = effectiveGround;
             this.velocity.y = 0;
             this.isGrounded = true;
         }

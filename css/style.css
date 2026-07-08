@@ -305,6 +305,54 @@ body {
     box-shadow: 0 0 20px #ff4500;
 }
 
+/* 楼层指示器 */
+#floor-indicator {
+    position: absolute;
+    top: 60px;
+    right: 30px;
+    text-align: right;
+}
+
+#floor-text {
+    color: #ffaa00;
+    font-size: 32px;
+    font-weight: bold;
+    text-shadow: 0 0 10px #ffaa00, 2px 2px 4px #000;
+    display: block;
+}
+
+#building-name {
+    color: #aaa;
+    font-size: 14px;
+    text-shadow: 1px 1px 2px #000;
+    display: block;
+    margin-top: 4px;
+}
+
+/* 天气/时间HUD */
+#weather-hud {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    text-align: left;
+}
+
+#game-time {
+    color: #ffddaa;
+    font-size: 22px;
+    font-weight: bold;
+    text-shadow: 0 0 8px #ffaa44, 2px 2px 4px #000;
+    display: block;
+}
+
+#weather-icon {
+    color: #ccc;
+    font-size: 14px;
+    text-shadow: 1px 1px 2px #000;
+    display: block;
+    margin-top: 4px;
+}
+
 /* 受伤遮罩 */
 #damage-overlay {
     position: fixed;

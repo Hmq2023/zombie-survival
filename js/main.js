@@ -6,6 +6,9 @@
     let scene, camera, renderer;
     let clock;
 
+    // 灯光引用
+    let ambientLight, sunLight, hemisphereLight;
+
     // 鼠标状态
     let mouseDown = false;
 
@@ -29,11 +32,8 @@
         // 时钟
         clock = new THREE.Clock();
 
-        // 灯光
+        // 灯光（创建后交给Weather管理）
         setupLights();
-
-        // 天空
-        setupSky();
 
         // 初始化子系统
         City.generate(scene);
@@ -45,9 +45,19 @@
         Survival.init();
         Game.init();
 
+        // 天气系统（必须在City生成之后，因为它会创建天空球）
+        Weather.init(scene, {
+            ambient: ambientLight,
+            sun: sunLight,
+            hemisphere: hemisphereLight
+        });
+
         // 生成游戏对象
         Zombie.spawnAll(scene);
         Items.spawnAll(scene);
+
+        // 火光点光源
+        addFireLights();
 
         // 事件绑定
         setupEvents();
@@ -58,29 +68,31 @@
 
     // 设置灯光
     function setupLights() {
-        // 环境光（暗淡）
-        const ambient = new THREE.AmbientLight(0x404050, 0.4);
-        scene.add(ambient);
+        // 环境光
+        ambientLight = new THREE.AmbientLight(0x404050, 0.4);
+        scene.add(ambientLight);
 
-        // 方向光（月光）
-        const moonlight = new THREE.DirectionalLight(0x8888cc, 0.6);
-        moonlight.position.set(50, 80, 30);
-        moonlight.castShadow = true;
-        moonlight.shadow.mapSize.width = 2048;
-        moonlight.shadow.mapSize.height = 2048;
-        moonlight.shadow.camera.near = 0.5;
-        moonlight.shadow.camera.far = 200;
-        moonlight.shadow.camera.left = -80;
-        moonlight.shadow.camera.right = 80;
-        moonlight.shadow.camera.top = 80;
-        moonlight.shadow.camera.bottom = -80;
-        scene.add(moonlight);
+        // 方向光（太阳/月亮）
+        sunLight = new THREE.DirectionalLight(0x8888cc, 0.6);
+        sunLight.position.set(50, 80, 30);
+        sunLight.castShadow = true;
+        sunLight.shadow.mapSize.width = 2048;
+        sunLight.shadow.mapSize.height = 2048;
+        sunLight.shadow.camera.near = 0.5;
+        sunLight.shadow.camera.far = 200;
+        sunLight.shadow.camera.left = -80;
+        sunLight.shadow.camera.right = 80;
+        sunLight.shadow.camera.top = 80;
+        sunLight.shadow.camera.bottom = -80;
+        scene.add(sunLight);
 
         // 半球光
-        const hemisphere = new THREE.HemisphereLight(0x444466, 0x222211, 0.3);
-        scene.add(hemisphere);
+        hemisphereLight = new THREE.HemisphereLight(0x444466, 0x222211, 0.3);
+        scene.add(hemisphereLight);
+    }
 
-        // 几个点光源模拟火光
+    // 火光点光源
+    function addFireLights() {
         const fireColors = [0xff6600, 0xff4400, 0xff8800];
         for (let i = 0; i < 5; i++) {
             const fire = new THREE.PointLight(fireColors[i % 3], 0.8, 15);
@@ -88,25 +100,6 @@
             fire.position.set(pos.x, 2, pos.z);
             scene.add(fire);
         }
-    }
-
-    // 设置天空
-    function setupSky() {
-        // 简单的天空球
-        const skyGeo = new THREE.SphereGeometry(150, 16, 16);
-        const skyMat = new THREE.MeshBasicMaterial({
-            color: 0x0a0a1a,
-            side: THREE.BackSide
-        });
-        const sky = new THREE.Mesh(skyGeo, skyMat);
-        scene.add(sky);
-
-        // 月亮
-        const moonGeo = new THREE.SphereGeometry(5, 16, 16);
-        const moonMat = new THREE.MeshBasicMaterial({ color: 0xccccdd });
-        const moon = new THREE.Mesh(moonGeo, moonMat);
-        moon.position.set(60, 90, -80);
-        scene.add(moon);
     }
 
     // 事件绑定
@@ -173,6 +166,9 @@
             // 更新生存
             Survival.update(dt);
 
+            // 更新天气
+            Weather.update(dt, Player.position);
+
             // 更新游戏状态
             Game.update(dt);
 
@@ -213,6 +209,8 @@
             // 更新HUD
             Game.updateWeaponHUD();
             Game.updatePickupHint();
+            Game.updateFloorIndicator();
+            Game.updateWeatherHUD();
         }
 
         renderer.render(scene, camera);
